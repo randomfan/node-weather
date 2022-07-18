@@ -8,9 +8,9 @@ import asciichart from 'asciichart'
 import boxen from 'boxen'
 
 import chalk from 'chalk'
-const chalkError = chalk.bold.red;
-const chalkWarn = chalk.hex('#FFA500'); // Orange color
-const chalkTitle = chalk.bold.yellow;
+const chalkError = chalk.bold.red
+const chalkWarn = chalk.hex('#FFA500') // Orange color
+const chalkTitle = chalk.bold.yellow
 
 // library for datetime manipulation
 import dayjs from 'dayjs'
@@ -41,54 +41,59 @@ if (postcode) {
         type: 'input',
         name: 'postcode',
         message: 'Enter a postcode to check weather forecast: '
-    });
+    })
     postcode = response.postcode
 }
 
-// no postcode provided, will pick a random location
+
+let postcodeObj = {}
 if (!postcode) {
+    // no postcode provided, will pick a random location
     try {
         const data = await postcodesIoApi.request('random')
         postcode = data.result.postcode
+        postcodeObj = data.result
         console.log(chalkWarn('No postcode detected. A random postcode has been selected: ' + postcode))
     } catch (error) {
         console.log(chalkError(`Error: failed to get random postcode via API (${error.message})`))
         process.exit()
     }
-}
-
-// validate provided postcode via API
-try {
-    const data = await postcodesIoApi.request('validate', { postcode: postcode })
-    let valid = data.result
-    if (!valid) {
-        console.error(chalkError('Error: postcode entered is invalid'))
+} else {
+    // validate provided postcode via API
+    try {
+        const data = await postcodesIoApi.request('validate', { postcode: postcode })
+        let valid = data.result
+        if (!valid) {
+            console.error(chalkError('Error: postcode entered is invalid'))
+            process.exit()
+        }
+    } catch (error) {
+        console.error(chalkError(`Error: failed to validate postcode via API (${error.message})`))
         process.exit()
     }
-} catch (error) {
-    console.error(chalkError(`Error: failed to validate postcode via API (${error.message})`))
-    process.exit()
+
+    // call API to look up lat/lon from postcode
+    try {
+        const data = await postcodesIoApi.request('lookup', { postcode: postcode })
+        postcodeObj = data.result
+    } catch (error) {
+        console.error(chalkError(`Error: failed to lookup postcode details via API (${error.message})`))
+        process.exit()
+    }
 }
 
-// call API to look up lat/lon from postcode
-let coords = { lat: 0, lon: 0 }
-let location = ''
-try {
-    const data = await postcodesIoApi.request('lookup', { postcode: postcode })
-    let lat = data.result.latitude
-    let lon = data.result.longitude
-    coords = { lat, lon }
-    location = `${data.result.admin_district}, ${data.result.country}`
-    console.log(`Coordinates: lat ${lat} lon ${lon}`)
-    console.log(`Location: ${location}`)
-} catch (error) {
-    console.error(chalkError(`Error: failed to lookup postcode details via API (${error.message})`))
-    process.exit()
-}
+// extract coordinates and location name from postcode lookup response
+let lat = postcodeObj.latitude
+let lon = postcodeObj.longitude
+let coords = { lat, lon }
+let location = `${postcodeObj.admin_district}, ${postcodeObj.country}`
+console.log(`Coordinates: lat ${lat} lon ${lon}`)
+console.log(`Location: ${location}`)
+
 
 // helper stuff for weather
 const windDirections = [ 'N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N' ]
-const daysOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const daysOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
 // work out wind direction from wind degree
 const getWindDirection = (degree) => {
     let windDirectionIndex = Math.round(degree / 22.5)
@@ -97,7 +102,7 @@ const getWindDirection = (degree) => {
 // function to group array elements by day
 const groupByDay = (obj, timestamp) => {
     var objPeriod = {}
-    var oneDay = 24 * 60 * 60 * 1000; // hours * minutes * seconds * milliseconds
+    var oneDay = 24 * 60 * 60 * 1000 // hours * minutes * seconds * milliseconds
     for (var i = 0; i < obj.length; i++) {
         var d = new Date(obj[i][timestamp] * 1000)
         d = Math.floor(d.getTime() / oneDay)
@@ -137,6 +142,7 @@ console.log()
 console.log(boxen(chalkTitle('Current Weather')))
 console.log(`-- condition: ${current.main} - ${current.description}`)
 console.log(`-- temperature: ${current.temperature} ${tempUnit}`)
+console.log(`-- feels like: ${current.feelsLike} ${tempUnit}`)
 console.log(`-- humidity: ${current.humidity}%`)
 console.log(`-- pressure: ${current.pressure} ${pressureUnit}`)
 console.log(`-- cloud coverage: ${current.clouds}%`)
@@ -152,12 +158,18 @@ if (weather.forecast) {
     })
     console.log(asciichart.plot(temps, { height: 8 }))
 
+    await inquirer.prompt({
+        type: 'input',
+        name: 'discard',
+        message: 'Press [Enter] to continue to the 5 day forecast'
+    })
+
     // output 5 day forecast now
     console.log()
     console.log(boxen(chalkTitle('5 Day Forecast')))
 
     // group the 3-hourly records into different days
-    var weatherByDay = groupByDay(weather.forecast, 'dt');
+    var weatherByDay = groupByDay(weather.forecast, 'dt')
     Object.keys(weatherByDay).forEach(key => {
         let daily = weatherByDay[key]
         let day = dayjs(key * 24 * 60 * 60 * 1000)
@@ -165,7 +177,7 @@ if (weather.forecast) {
         // set up ascii table for the day with title and headers
         var table =
             new AsciiTable3(`${day.format('dddd DD MMMM')}`)
-            .setHeading('Time', 'Description', 'Temp', 'Cloud', 'Wind')
+            .setHeading('Time', 'Description', 'Temp', 'Feels Like', 'Cloud', 'Wind')
 
         // insert the required data into table rows
         daily.forEach((record) => {
@@ -173,13 +185,14 @@ if (weather.forecast) {
                 dayjs(record.dt * 1000).format('ha'),
                 `${record.description}`,
                 `${record.temperature} ${tempUnit}`,
+                `${record.feelsLike} ${tempUnit}`,
                 `${record.clouds}%`,
                 `${record.windSpeed} ${windSpeedUnit}, ${getWindDirection(record.windDegree)} direction`
             )
         })
 
         // style and print table
-        table.setStyle('unicode-single');
-        console.log(table.toString());
+        table.setStyle('unicode-single')
+        console.log(table.toString())
     })
 }

@@ -93,6 +93,7 @@ class OpenWeatherMapApi {
             let description = `${weather.weather[0].description}`
             let icon = `${weather.weather[0].icon}`
             let temperature = `${Math.round(weather.main.temp)}`
+            let feelsLike = `${Math.round(weather.main.feels_like)}`
             let pressure = `${weather.main.pressure}`
             let humidity = `${weather.main.humidity}`
             let clouds = `${weather.clouds.all}`
@@ -101,7 +102,7 @@ class OpenWeatherMapApi {
             let windDegree = `${weather.wind.deg}`
             let sunrise = `${weather.sys.sunrise}`
             let sunset = `${weather.sys.sunset}`
-            data.current = { dt, main, description, icon, temperature, pressure, humidity, clouds, visibility, windSpeed, windDegree, sunrise, sunset }
+            data.current = { dt, main, description, icon, temperature, feelsLike, pressure, humidity, clouds, visibility, windSpeed, windDegree, sunrise, sunset }
         } catch (error) {
             throw new Error(`Error retrieving current weather: ${error.message}`)
         }
@@ -117,13 +118,14 @@ class OpenWeatherMapApi {
                     let description = `${weather.weather[0].description}`
                     let icon = `${weather.weather[0].icon}`
                     let temperature = `${Math.round(weather.main.temp)}`
+                    let feelsLike = `${Math.round(weather.main.feels_like)}`
                     let pressure = `${weather.main.pressure}`
                     let humidity = `${weather.main.humidity}`
                     let clouds = `${weather.clouds.all}`
                     let visibility = `${weather.visibility}`
                     let windSpeed = `${weather.wind.speed}`
                     let windDegree = `${weather.wind.deg}`
-                    return { dt, main, description, icon, temperature, pressure, humidity, visibility, clouds, windSpeed, windDegree }
+                    return { dt, main, description, icon, temperature, feelsLike, pressure, humidity, visibility, clouds, windSpeed, windDegree }
                 })
                 data.forecast = forecastData
             } catch (error) {
