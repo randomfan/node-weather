@@ -28,13 +28,17 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('view engine', 'ejs')
 
 // Setup our default display on launch
-app.get('/', async function(req, res) {
-
-    // It shall not fetch and display any data in the index page
+app.get('/weather', async function(req, res) {
+    // return view with just base form
     res.render('index', { weather: null, error: null })
 })
 
-// On a post request, the app shall data from OpenWeatherMap using the given arguments
+// route redirect from root url
+app.get('/', async (req, res) => {
+    res.redirect('/weather');
+});
+
+// post request for when form submits to get weather data
 app.post('/weather', async function(req, res) {
 
     // Get postcode passed in the form
@@ -94,6 +98,7 @@ app.post('/weather', async function(req, res) {
     const windSpeedUnit = weatherUnits == 'metric' ? 'm/s' : 'mi/hr'
     const pressureUnit = 'hPa'
 
+    // set up object to be passed to view for all the weather data
     let current = weather.current
     let today = dayjs(current.dt * 1000)
     let sunrise = dayjs(current.sunrise * 1000)
@@ -117,12 +122,12 @@ app.post('/weather', async function(req, res) {
         windDirection: getWindDirection(current.windDegree)
     }
 
-    // We shall now render the data to our page (index.ejs) before displaying it out
+    // now render the view with the weather data
     res.render('index', { weather: data, error: null })
 
 })
 
-// We shall set up our port configurations
+// set up app listening port
 app.listen(5000, function() {
     console.log('Weather app listening on port 5000!')
 })
