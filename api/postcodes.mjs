@@ -1,12 +1,13 @@
 import axios from 'axios'
 
 class PostcodesIoApi {
+    // constructor to set up base config for API, and definitions for the available endpoints
     constructor() {
         this.baseUrl = "https://api.postcodes.io"
         this.endpoints = {
+            // endpoint for looking up single postcode
             lookup: (options = {}) => {
                 if (!options.postcode) throw new Error('A postcode is required for the lookup action')
-
                 return {
                     method: 'get',
                     resource: `/postcodes/${encodeURIComponent(options.postcode)}`,
@@ -15,6 +16,7 @@ class PostcodesIoApi {
                     body: null,
                 }
             },
+            // endpoint for getting random postcode
             random: (options = {}) => {
                 return {
                     method: 'get',
@@ -24,9 +26,9 @@ class PostcodesIoApi {
                     body: null,
                 }
             },
+            // endpoint for validating single postcode
             validate: (options = {}) => {
                 if (!options.postcode) throw new Error('A postcode is required for the lookup action')
-    
                 return {
                     method: 'get',
                     resource: `/postcodes/${encodeURIComponent(options.postcode)}/validate`,
@@ -35,6 +37,7 @@ class PostcodesIoApi {
                     body: null,
                 }
             },
+            // endpoint for bulk lookup list of postcodes
             bulklookup: (options = {}) => {
                 return {
                     method: 'post',
@@ -49,6 +52,7 @@ class PostcodesIoApi {
         }
     }
 
+    // function to make the API request to server using given endpoint, and return complete JSON data
     async request(action, options = {}) {
         // make sure an action is specified
         if (!action) {
