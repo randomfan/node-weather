@@ -2,9 +2,10 @@
   "name": "weather",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "app.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.mjs"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,14 @@
   "bugs": {
     "url": "https://github.com/randomfan/node-weather/issues"
   },
-  "homepage": "https://github.com/randomfan/node-weather#readme"
+  "homepage": "https://github.com/randomfan/node-weather#readme",
+  "dependencies": {
+    "ascii-table3": "^0.7.6",
+    "asciichart": "^1.5.25",
+    "axios": "^0.27.2",
+    "boxen": "^7.0.0",
+    "dayjs": "^1.11.3",
+    "dotenv": "^16.0.1",
+    "inquirer": "^9.0.1"
+  }
 }
