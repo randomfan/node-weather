@@ -16,21 +16,10 @@ let weatherUnits = process.env.OPENWEATHERMAP_UNITS
 if (weatherUnits != 'metric' && weatherUnits != 'imperial') weatherUnits = 'metric'
 
 // console output shortcuts
-const logError = (e) => {
-    console.error(chalk.bold.red(e))
-}
-const logWarning = (w) => {
-    console.log(boxen(chalk.hex('#FFA500')(w)))
-}
-const logTitle = (t) => {
-    console.log(boxen(chalk.bold.yellowBright(t)))
-}
-const logKvp = (k,v) => {
-    let key = k
-    let value = chalk.blueBright(v)
-    let prefix = '- '
-    console.log(`${prefix}${key}: ${value}`)
-}
+const logError = (e) => { console.error(chalk.bold.red(e)) }
+const logWarning = (w) => {  console.log(chalk.hex('#FFA500')(w)) }
+const logTitle = (t) => { console.log(boxen(chalk.bold.yellowBright(t))) }
+const logKvp = (k,v) => { console.log(`- ${k}: ${chalk.blueBright(v)}`) }
 
 // import api wrapper classes
 import postcodesIoApi from './api/postcodes.mjs'
@@ -97,8 +86,6 @@ let lat = postcodeObj.latitude
 let lon = postcodeObj.longitude
 let coords = { lat, lon }
 let location = `${postcodeObj.admin_district}, ${postcodeObj.country}`
-console.log(`Coordinates: lat ${lat} lon ${lon}`)
-console.log(`Location: ${location}`)
 
 // function to group array elements by day
 const groupByDay = (obj, timestamp) => {
@@ -129,21 +116,21 @@ const pressureUnit = openWeatherMapApi.getUnit('pressure')
 
 // output details about location/date/time, and current weather
 let current = weather.current
-console.log()
-logTitle('Location')
-
 let today = dayjs(current.dt * 1000).format('dddd DD MMMM YYYY, hh:mma')
 let sunrise = dayjs(current.sunrise * 1000).format('hh:mma')
 let sunset = dayjs(current.sunset * 1000).format('hh:mma')
-logKvp('Location', location)
+console.log()
+logTitle('Location')
 logKvp('Date/Time',today)
+logKvp('Location', location)
+logKvp('Coordinates', `lat ${coords.lat}, lon ${coords.lon}`)
 logKvp('Sunrise Time', sunrise)
 logKvp('Sunset Time', sunset)
 
 console.log()
 logTitle('Current Weather')
-logKvp('condition', `${current.main} - ${current.description}`)
-logKvp('temperature', `${current.temperature} ${tempUnit}`)
+logKvp('Condition', `${current.main} - ${current.description}`)
+logKvp('Temperature', `${current.temperature} ${tempUnit}`)
 logKvp('Feels Like', `${current.feelsLike} ${tempUnit}`)
 logKvp('Humidity', `${current.humidity}%`)
 logKvp('Pressure', `${current.pressure} ${pressureUnit}`)
