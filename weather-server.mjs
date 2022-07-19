@@ -1,9 +1,7 @@
 // Require node_modules
-
 import dayjs from 'dayjs'
 import express from 'express'
 import bodyParser from 'body-parser'
-import request from 'request'
 const app = express()
 
 // Configure dotenv package
@@ -86,17 +84,10 @@ app.post('/weather', async function(req, res) {
 
     console.log(weather)
 
-    // helper stuff for weather
-    const windDirections = [ 'N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N' ]
-    // work out wind direction from wind degree
-    const getWindDirection = (degree) => {
-        let windDirectionIndex = Math.round(degree / 22.5)
-        return windDirections[windDirectionIndex]
-    }
-    // weather units
-    const tempUnit = weatherUnits == 'metric' ? '°C' : '°F'
-    const windSpeedUnit = weatherUnits == 'metric' ? 'm/s' : 'mi/hr'
-    const pressureUnit = 'hPa'
+    // get weather unit
+    const tempUnit = openWeatherMapApi.getUnit('temp')
+    const windSpeedUnit = openWeatherMapApi.getUnit('windspeed')
+    const pressureUnit = openWeatherMapApi.getUnit('pressure')
 
     // set up object to be passed to view for all the weather data
     let current = weather.current
@@ -119,7 +110,7 @@ app.post('/weather', async function(req, res) {
         icon: `http://openweathermap.org/img/wn/${current.icon}@2x.png`,
         clouds: current.clouds,
         windSpeed: `${current.windSpeed} ${windSpeedUnit}`,
-        windDirection: getWindDirection(current.windDegree)
+        windDirection: current.windDirection
     }
 
     // now render the view with the weather data

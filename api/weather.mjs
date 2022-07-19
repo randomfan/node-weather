@@ -6,6 +6,7 @@ class OpenWeatherMapApi {
         this.baseUrl = "https://api.openweathermap.org/data/2.5"
         this.apikey = apikey
         this.units = units
+
         this.endpoints = {
             // endpoint for getting current weather condition
             weather: (options = {}) => {
@@ -98,11 +99,14 @@ class OpenWeatherMapApi {
             let humidity = `${weather.main.humidity}`
             let clouds = `${weather.clouds.all}`
             let visibility = `${weather.visibility}`
-            let windSpeed = `${weather.wind.speed}`
+            let windSpeed = `${Math.round(weather.wind.speed)}`
             let windDegree = `${weather.wind.deg}`
+            let windDirection = this.getWindDirection(windDegree)
             let sunrise = `${weather.sys.sunrise}`
             let sunset = `${weather.sys.sunset}`
-            data.current = { dt, main, description, icon, temperature, feelsLike, pressure, humidity, clouds, visibility, windSpeed, windDegree, sunrise, sunset }
+            data.current = { 
+                dt, main, description, icon, temperature, feelsLike, pressure, humidity, clouds, visibility, windSpeed, windDegree, windDirection, sunrise, sunset 
+            }
         } catch (error) {
             throw new Error(`Error retrieving current weather: ${error.message}`)
         }
@@ -123,9 +127,12 @@ class OpenWeatherMapApi {
                     let humidity = `${weather.main.humidity}`
                     let clouds = `${weather.clouds.all}`
                     let visibility = `${weather.visibility}`
-                    let windSpeed = `${weather.wind.speed}`
+                    let windSpeed = `${Math.round(weather.wind.speed)}`
                     let windDegree = `${weather.wind.deg}`
-                    return { dt, main, description, icon, temperature, feelsLike, pressure, humidity, visibility, clouds, windSpeed, windDegree }
+                    let windDirection = this.getWindDirection(windDegree)
+                    return { 
+                        dt, main, description, icon, temperature, feelsLike, pressure, humidity, visibility, clouds, windSpeed, windDegree, windDirection 
+                    }
                 })
                 data.forecast = forecastData
             } catch (error) {
@@ -135,6 +142,31 @@ class OpenWeatherMapApi {
 
         // return complete object containing current and forecast data
         return data
+    }
+
+    // work out wind direction from wind degree
+    getWindDirection (degree) {
+        const windDirections = [ 'N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N' ]
+        degree = degree % 360   // just in case the degree is > 360
+        let windDirectionIndex = Math.round(degree / 22.5)
+        return windDirections[windDirectionIndex]
+    }
+
+    getUnit (type) {
+        switch(type) {
+            case 'temp':
+                return this.units == 'metric' ? '°C' : '°F'
+                break;
+            case 'windspeed':
+                return this.units == 'metric' ? 'm/s' : 'mi/hr'
+                break;
+            case 'pressure':
+                return 'hPa'
+                break;
+            default:
+                throw new Error(`unknown unit type [${type}]`)
+                break;
+        }
     }
 }
   
